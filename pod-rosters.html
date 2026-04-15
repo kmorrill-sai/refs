@@ -1,0 +1,1743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolAI · Pod Rosters</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0d;
+    --surface: #111116;
+    --surface2: #18181f;
+    --border: #1f1f2a;
+    --border2: #2a2a38;
+    --text: #e8e8f0;
+    --text2: #8888a8;
+    --text3: #44445a;
+    --ae: #6366f1;
+    --ae-bg: rgba(99,102,241,0.1);
+    --ae-border: rgba(99,102,241,0.25);
+    --pdr: #10b981;
+    --pdr-bg: rgba(16,185,129,0.1);
+    --pdr-border: rgba(16,185,129,0.2);
+    --csm: #f59e0b;
+    --csm-bg: rgba(245,158,11,0.1);
+    --csm-border: rgba(245,158,11,0.2);
+    --es: #f43f5e;
+    --es-bg: rgba(244,63,94,0.1);
+    --es-border: rgba(244,63,94,0.2);
+    --mgr: #9980d0;
+    --mgr-bg: rgba(153,128,208,0.08);
+    --warn: #f59e0b;
+    --warn-bg: rgba(245,158,11,0.08);
+    --west: #6366f1;
+    --south: #f59e0b;
+    --central: #10b981;
+    --east: #f43f5e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─── */
+  .app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,10,13,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 56px;
+  }
+
+  .app-logo {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .app-logo span {
+    color: var(--ae);
+  }
+
+  .header-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border2);
+    flex-shrink: 0;
+  }
+
+  .search-wrap {
+    flex: 1;
+    max-width: 380px;
+    position: relative;
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text3);
+    font-size: 13px;
+    pointer-events: none;
+  }
+
+  #search-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px 7px 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  #search-input::placeholder { color: var(--text3); }
+  #search-input:focus {
+    border-color: var(--ae);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  }
+
+  .search-clear {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 14px;
+    display: none;
+    padding: 2px 4px;
+    border-radius: 4px;
+  }
+  .search-clear:hover { color: var(--text2); }
+  .search-clear.visible { display: block; }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 13px;
+    border-radius: 7px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+  }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+  .btn-primary {
+    background: var(--ae);
+    color: white;
+  }
+  .btn-primary:hover { background: #7577f5; }
+
+  .btn-danger {
+    background: rgba(244,63,94,0.12);
+    border: 1px solid rgba(244,63,94,0.2);
+    color: var(--es);
+  }
+  .btn-danger:hover { background: rgba(244,63,94,0.2); }
+
+  .last-saved {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+  }
+
+  /* ─── LAYOUT ─── */
+  .app-body {
+    display: flex;
+    height: calc(100vh - 56px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 16px 0;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+
+  .sidebar-section {
+    margin-bottom: 20px;
+  }
+
+  .sidebar-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 0 16px;
+    margin-bottom: 6px;
+  }
+
+  .region-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 16px;
+    background: none;
+    border: none;
+    color: var(--text2);
+    font-family: 'Syne', sans-serif;
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s;
+    border-left: 2px solid transparent;
+  }
+  .region-btn:hover { background: var(--surface2); color: var(--text); }
+  .region-btn.active { color: var(--text); background: var(--surface2); }
+
+  .region-pip {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .pod-count {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    background: var(--surface2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .sidebar-stats {
+    padding: 12px 16px;
+    margin: 8px 12px 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+  }
+  .stat-row:last-child { margin-bottom: 0; }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    color: var(--text3);
+  }
+
+  .stat-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+  }
+
+  /* ─── MAIN CONTENT ─── */
+  .main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+  }
+
+  /* ─── SEARCH RESULTS OVERLAY ─── */
+  .search-results {
+    display: none;
+    margin-bottom: 24px;
+  }
+  .search-results.visible { display: block; }
+
+  .search-results-header {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  .search-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 8px;
+  }
+
+  .search-result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .search-result-card:hover { border-color: var(--ae); background: var(--surface2); }
+
+  .src-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .src-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .src-pod {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text2);
+  }
+
+  /* ─── REGION SECTION ─── */
+  .region-section {
+    margin-bottom: 32px;
+  }
+
+  .region-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .region-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .region-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── POD GRID ─── */
+  .pods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+  }
+
+  /* ─── POD CARD ─── */
+  .pod-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+
+  .pod-card:hover {
+    border-color: var(--border2);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  .pod-card.highlight {
+    border-color: var(--ae);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  }
+
+  .pod-card-header {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 12px 14px 10px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pod-color-bar {
+    width: 3px;
+    height: 28px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .pod-title-block { flex: 1; min-width: 0; }
+
+  .pod-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pod-states {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  .pod-card-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .pod-card:hover .pod-card-actions { opacity: 1; }
+
+  .icon-btn {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 4px 7px;
+    font-size: 11px;
+    transition: all 0.12s;
+  }
+  .icon-btn:hover { background: var(--surface); color: var(--text2); }
+  .icon-btn.danger:hover { color: var(--es); border-color: var(--es-border); background: var(--es-bg); }
+
+  /* ─── MGR STRIP ─── */
+  .mgr-strip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    background: var(--mgr-bg);
+    border-bottom: 1px solid rgba(153,128,208,0.1);
+  }
+
+  .mgr-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mgr);
+    background: rgba(153,128,208,0.1);
+    border: 1px solid rgba(153,128,208,0.2);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+
+  .mgr-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    color: var(--mgr);
+    font-weight: 500;
+  }
+
+  .mgr-sep { color: var(--border2); font-size: 10px; }
+
+  /* ─── MEMBERS LIST ─── */
+  .members-list {
+    padding: 6px 0 8px;
+  }
+
+  .member-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 14px;
+    transition: background 0.1s;
+    position: relative;
+  }
+  .member-row:hover { background: rgba(255,255,255,0.02); }
+  .member-row:hover .member-actions { opacity: 1; }
+
+  .role-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+  }
+
+  .tag-ae  { background: var(--ae-bg);  color: var(--ae);  border: 1px solid var(--ae-border); }
+  .tag-pdr { background: var(--pdr-bg); color: var(--pdr); border: 1px solid var(--pdr-border); }
+  .tag-csm { background: var(--csm-bg); color: var(--csm); border: 1px solid var(--csm-border); }
+  .tag-es  { background: var(--es-bg);  color: var(--es);  border: 1px solid var(--es-border); }
+
+  .member-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .member-name.unconfirmed {
+    font-style: italic;
+    color: var(--warn);
+    font-size: 10px;
+  }
+
+  .member-actions {
+    display: flex;
+    gap: 3px;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+
+  .member-edit-btn {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 10px;
+    transition: all 0.1s;
+  }
+  .member-edit-btn:hover { color: var(--text2); background: var(--surface2); }
+  .member-edit-btn.del:hover { color: var(--es); }
+
+  /* ADD MEMBER ROW */
+  .add-member-row {
+    padding: 4px 14px 6px;
+  }
+
+  .add-member-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px dashed var(--border2);
+    border-radius: 6px;
+    color: var(--text3);
+    cursor: pointer;
+    padding: 5px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    transition: all 0.12s;
+    width: 100%;
+    text-align: left;
+  }
+  .add-member-btn:hover { color: var(--text2); border-color: var(--border2); background: var(--surface2); }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 14px;
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    animation: modal-in 0.18s ease;
+  }
+
+  @keyframes modal-in {
+    from { opacity: 0; transform: scale(0.96) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .modal-header {
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text3);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.1s;
+  }
+  .modal-close:hover { color: var(--text); }
+
+  .modal-body { padding: 18px 20px; }
+
+  .form-group { margin-bottom: 14px; }
+  .form-group:last-child { margin-bottom: 0; }
+
+  .form-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+    appearance: none;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--ae); }
+  .form-select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2344445a'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 28px; }
+
+  .role-select-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .role-option {
+    padding: 6px 4px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: var(--surface2);
+    cursor: pointer;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--text3);
+    transition: all 0.12s;
+  }
+  .role-option:hover { border-color: var(--border2); color: var(--text2); }
+  .role-option.selected-ae  { background: var(--ae-bg);  color: var(--ae);  border-color: var(--ae-border); }
+  .role-option.selected-pdr { background: var(--pdr-bg); color: var(--pdr); border-color: var(--pdr-border); }
+  .role-option.selected-csm { background: var(--csm-bg); color: var(--csm); border-color: var(--csm-border); }
+  .role-option.selected-es  { background: var(--es-bg);  color: var(--es);  border-color: var(--es-border); }
+
+  .modal-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* ─── ADD POD MODAL ─── */
+  .modal.wide { width: 500px; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { border-color: rgba(16,185,129,0.3); color: var(--pdr); }
+  .toast.error { border-color: var(--es-border); color: var(--es); }
+
+  /* ─── EMPTY STATE ─── */
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text3);
+  }
+  .empty-state-icon { font-size: 32px; margin-bottom: 12px; }
+  .empty-state-text { font-family: 'DM Mono', monospace; font-size: 11px; }
+
+  /* ─── LEGEND ─── */
+  .legend-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 8.5px;
+    color: var(--text3);
+  }
+
+  .legend-pip {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+
+  /* ─── WARN BADGE ─── */
+  .warn-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    background: var(--warn-bg);
+    border: 1px solid rgba(245,158,11,0.25);
+    color: var(--warn);
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ─── FILTERS ─── */
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.05em;
+  }
+  .filter-chip:hover { color: var(--text2); }
+  .filter-chip.active-ae  { background: var(--ae-bg);  color: var(--ae);  border-color: var(--ae-border); }
+  .filter-chip.active-pdr { background: var(--pdr-bg); color: var(--pdr); border-color: var(--pdr-border); }
+  .filter-chip.active-csm { background: var(--csm-bg); color: var(--csm); border-color: var(--csm-border); }
+  .filter-chip.active-es  { background: var(--es-bg);  color: var(--es);  border-color: var(--es-border); }
+  .filter-chip.active-all { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-logo">School<span>AI</span> · Pods</div>
+  <div class="header-divider"></div>
+  <div class="search-wrap">
+    <span class="search-icon">⌕</span>
+    <input type="text" id="search-input" placeholder="Search by name, pod, or role…" autocomplete="off">
+    <button class="search-clear" id="search-clear">✕</button>
+  </div>
+  <div class="header-actions">
+    <span class="last-saved" id="last-saved"></span>
+    <button class="btn btn-ghost" onclick="exportData()">↓ Export</button>
+    <button class="btn btn-ghost" onclick="openImportModal()">↑ Import</button>
+    <button class="btn btn-primary" onclick="openAddPodModal()">+ Add Pod</button>
+  </div>
+</header>
+
+<!-- BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Regions</div>
+      <button class="region-btn active" onclick="filterRegion('all', this)">
+        <span class="region-pip" style="background:#6366f1"></span>
+        All Regions
+        <span class="pod-count" id="count-all">—</span>
+      </button>
+      <button class="region-btn" onclick="filterRegion('West', this)">
+        <span class="region-pip" style="background:var(--west)"></span>
+        West
+        <span class="pod-count" id="count-West">—</span>
+      </button>
+      <button class="region-btn" onclick="filterRegion('South', this)">
+        <span class="region-pip" style="background:var(--south)"></span>
+        South &amp; Central
+        <span class="pod-count" id="count-South">—</span>
+      </button>
+      <button class="region-btn" onclick="filterRegion('Midwest', this)">
+        <span class="region-pip" style="background:var(--central)"></span>
+        Midwest
+        <span class="pod-count" id="count-Midwest">—</span>
+      </button>
+      <button class="region-btn" onclick="filterRegion('East', this)">
+        <span class="region-pip" style="background:var(--east)"></span>
+        East
+        <span class="pod-count" id="count-East">—</span>
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Team Stats</div>
+      <div class="sidebar-stats">
+        <div class="stat-row">
+          <span class="stat-label">Total pods</span>
+          <span class="stat-val" style="color:var(--text2)" id="stat-pods">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Members</span>
+          <span class="stat-val" style="color:var(--text2)" id="stat-members">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">AEs</span>
+          <span class="stat-val" style="color:var(--ae)" id="stat-ae">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">PDRs</span>
+          <span class="stat-val" style="color:var(--pdr)" id="stat-pdr">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">CSMs</span>
+          <span class="stat-val" style="color:var(--csm)" id="stat-csm">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">ES</span>
+          <span class="stat-val" style="color:var(--es)" id="stat-es">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Updated</div>
+      <div style="padding: 0 16px; font-family:'DM Mono',monospace; font-size:9px; color:var(--text3); line-height:1.6">
+        Apr 14, 2026<br>
+        Verified via Slack<br>
+        + Gmail
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main-content">
+
+    <!-- SEARCH RESULTS -->
+    <div class="search-results" id="search-results">
+      <div class="search-results-header" id="search-results-header">0 results</div>
+      <div class="search-results-grid" id="search-results-grid"></div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-chip active-all" data-role="all" onclick="filterRole('all', this)">All Roles</button>
+      <button class="filter-chip" data-role="ae" onclick="filterRole('ae', this)">AE</button>
+      <button class="filter-chip" data-role="pdr" onclick="filterRole('pdr', this)">PDR</button>
+      <button class="filter-chip" data-role="csm" onclick="filterRole('csm', this)">CSM</button>
+      <button class="filter-chip" data-role="es" onclick="filterRole('es', this)">ES</button>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend-bar">
+      <div class="legend-item"><div class="legend-pip" style="background:var(--ae)"></div>AE = Account Executive</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--pdr)"></div>PDR = Partnership Dev Rep</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--csm)"></div>CSM = Customer Success Mgr</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--es)"></div>ES = Education Strategist</div>
+      <div class="legend-item"><div class="legend-pip" style="background:var(--mgr)"></div>Mgr strip = reporting chain</div>
+    </div>
+
+    <!-- POD REGIONS -->
+    <div id="regions-container"></div>
+
+  </main>
+</div>
+
+<!-- MODAL: Add/Edit Member -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="member-modal-title">Add Member</div>
+      <button class="modal-close" onclick="closeModal('member-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editing-pod-id">
+      <input type="hidden" id="editing-member-idx">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" class="form-input" id="member-name-input" placeholder="e.g. Sophie Carlson">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <div class="role-select-grid">
+          <div class="role-option" data-role="ae" onclick="selectRole(this)">AE</div>
+          <div class="role-option" data-role="pdr" onclick="selectRole(this)">PDR</div>
+          <div class="role-option" data-role="csm" onclick="selectRole(this)">CSM</div>
+          <div class="role-option" data-role="es" onclick="selectRole(this)">ES</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note (optional)</label>
+        <input type="text" class="form-input" id="member-note-input" placeholder="e.g. East + LI, unconfirmed…">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMember()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Edit Pod -->
+<div class="modal-overlay" id="pod-modal">
+  <div class="modal wide">
+    <div class="modal-header">
+      <div class="modal-title" id="pod-modal-title">Edit Pod</div>
+      <button class="modal-close" onclick="closeModal('pod-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editing-pod-id-2">
+      <div class="form-group">
+        <label class="form-label">Pod Name</label>
+        <input type="text" class="form-input" id="pod-name-input" placeholder="e.g. Pacific Northwest">
+      </div>
+      <div class="form-group">
+        <label class="form-label">States / Territory</label>
+        <input type="text" class="form-input" id="pod-states-input" placeholder="e.g. WA · OR · MT · ID">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Region</label>
+        <select class="form-select" id="pod-region-input">
+          <option value="West">West</option>
+          <option value="South">South &amp; Central</option>
+          <option value="Midwest">Midwest</option>
+          <option value="East">East</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Manager</label>
+        <input type="text" class="form-input" id="pod-mgr-input" placeholder="e.g. Ford Poulsen">
+      </div>
+      <div class="form-group">
+        <label class="form-label">SVP</label>
+        <input type="text" class="form-input" id="pod-svp-input" placeholder="e.g. Ike Ramos">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Alert / Notes</label>
+        <input type="text" class="form-input" id="pod-alert-input" placeholder="e.g. AE open — Sean departed Apr 7">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="pod-delete-btn" onclick="deletePod()">Delete Pod</button>
+      <button class="btn btn-ghost" onclick="closeModal('pod-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePod()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Import -->
+<div class="modal-overlay" id="import-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Import JSON</div>
+      <button class="modal-close" onclick="closeModal('import-modal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Paste exported JSON</label>
+        <textarea class="form-input" id="import-json" rows="8" style="resize:vertical; line-height:1.5; font-size:10px" placeholder='Paste JSON here...'></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('import-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="importData()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════
+
+const REGION_COLORS = {
+  'West': '#6366f1',
+  'South': '#f59e0b',
+  'Midwest': '#10b981',
+  'East': '#f43f5e'
+};
+
+const DEFAULT_DATA = {
+  pods: [
+    {
+      id: 'pnw', name: 'Pacific Northwest', states: 'WA · OR · MT · ID',
+      region: 'West', mgr: '', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Kenna Torp', role: 'ae' },
+        { name: 'Chase LaCroix', role: 'pdr' },
+        { name: 'Celine Rousseau', role: 'pdr' },
+        { name: 'Ryan Boyle', role: 'pdr' },
+        { name: 'Avery Balasbas', role: 'es' },
+      ]
+    },
+    {
+      id: 'norca', name: 'Northern CA', states: 'NorCal',
+      region: 'West', mgr: '', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Clint Schiffman', role: 'ae' },
+        { name: 'Ryan Boyle', role: 'pdr' },
+        { name: 'Bryson Gray', role: 'pdr' },
+        { name: 'Avery Balasbas', role: 'es' },
+      ]
+    },
+    {
+      id: 'socal', name: 'SoCal + Hawaii', states: 'SoCal · HI',
+      region: 'West', mgr: '', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Levi Gephart', role: 'ae' },
+        { name: 'Ryan Boyle', role: 'pdr' },
+        { name: 'Bryson Gray', role: 'pdr' },
+        { name: 'Avery Balasbas', role: 'es' },
+      ]
+    },
+    {
+      id: 'mtnwest', name: 'Mountain West', states: 'CO · AZ · UT',
+      region: 'West', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Jeff Couch', role: 'ae' },
+        { name: 'Heidi Morton', role: 'csm' },
+        { name: 'Kasey Chambers', role: 'csm' },
+        { name: 'Jeremy Macdonald', role: 'es' },
+      ]
+    },
+    {
+      id: 'frontier', name: 'Frontier Region', states: 'ID · OR · SD · WY',
+      region: 'West', mgr: '', svp: 'Ike Ramos', alert: 'direct report to SVP',
+      members: [
+        { name: 'Ben Jensen', role: 'ae' },
+        { name: 'Bryson Gray', role: 'pdr' },
+        { name: 'McKay Perkins', role: 'csm' },
+        { name: 'Jeremy Macdonald', role: 'es' },
+      ]
+    },
+    {
+      id: 'southwest', name: 'Southwest (Lonestar)', states: 'TX · NM',
+      region: 'South', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: '⚠ AE unconfirmed', role: 'ae', unconfirmed: true },
+        { name: 'Blake Bentley', role: 'pdr' },
+        { name: 'Jace Palmer', role: 'pdr' },
+        { name: 'Fely García López', role: 'es' },
+      ]
+    },
+    {
+      id: 'hoosier', name: 'Hoosier', states: 'IN · Catholic Diocese',
+      region: 'South', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Monica Tinajero', role: 'ae' },
+        { name: 'Rachel Pfost', role: 'csm' },
+        { name: 'Talmage Morgan', role: 'csm' },
+        { name: 'Stephanie Howell', role: 'es' },
+        { name: 'Rayelle Poulsen', role: 'es' },
+      ]
+    },
+    {
+      id: 'heartland', name: 'Heartland', states: 'TN · OH',
+      region: 'South', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Caroline Tell', role: 'ae' },
+        { name: 'Blake Bentley', role: 'pdr' },
+        { name: 'Katie Ellis', role: 'csm' },
+        { name: 'Stephanie Howell', role: 'es' },
+      ]
+    },
+    {
+      id: 'bluegrass', name: 'Bluegrass Corridor', states: 'KY · PA',
+      region: 'South', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: '⚠ AE unconfirmed', role: 'ae', unconfirmed: true },
+        { name: 'Brittany Freda', role: 'pdr' },
+        { name: 'McKay Perkins', role: 'csm' },
+        { name: 'Anna Siegel', role: 'csm' },
+        { name: 'Blasia Dunham', role: 'es' },
+        { name: 'Stephanie Howell', role: 'es' },
+      ]
+    },
+    {
+      id: 'carolinas', name: 'The Carolinas', states: 'NC · SC',
+      region: 'South', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Nick Marcie', role: 'ae' },
+        { name: 'Anna Siegel', role: 'pdr' },
+        { name: 'Jennifer Grimes', role: 'es' },
+      ]
+    },
+    {
+      id: 'greatlakes', name: 'Great Lakes', states: 'IL · WI · MI',
+      region: 'Midwest', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '⚠ AE open — Sean departed Apr 7',
+      members: [
+        { name: 'Ford Poulsen (interim)', role: 'ae', unconfirmed: true },
+        { name: 'Rachel Pfost', role: 'csm' },
+        { name: 'Rayelle Poulsen', role: 'csm' },
+        { name: 'Tarah Tesmer', role: 'es' },
+      ]
+    },
+    {
+      id: 'newyork', name: 'New York', states: 'NY',
+      region: 'East', mgr: 'Ford Poulsen', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Brad Weir', role: 'ae', note: 'East + LI' },
+        { name: 'Trevor Goertzen', role: 'ae' },
+        { name: 'Kat Picarde', role: 'pdr', note: 'Central/West NY' },
+        { name: 'Jarvis Pace', role: 'pdr' },
+        { name: 'Cheska Robinson', role: 'es' },
+      ]
+    },
+    {
+      id: 'newengland', name: 'New England', states: 'CT · NH · ME · MA · RI · VT',
+      region: 'East', mgr: '', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Sophie Carlson', role: 'ae' },
+        { name: 'Kat Picarde', role: 'pdr' },
+        { name: 'Jarvis Pace', role: 'pdr' },
+        { name: 'Heidi Morton', role: 'csm' },
+        { name: 'Cheska Robinson', role: 'es' },
+        { name: 'Tarah Tesmer', role: 'es' },
+      ]
+    },
+    {
+      id: 'metroatlantic', name: 'Metro Atlantic', states: 'NJ · MA · CT',
+      region: 'East', mgr: '', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Jarvis Pace', role: 'ae' },
+        { name: 'Monica Tinajero', role: 'pdr' },
+        { name: 'Blasia Dunham', role: 'es' },
+        { name: 'Cheska Robinson', role: 'es' },
+      ]
+    },
+    {
+      id: 'midatlantic', name: 'Mid-Atlantic', states: 'VA · MD · DC · DE',
+      region: 'East', mgr: '', svp: 'Ike Ramos', alert: '',
+      members: [
+        { name: 'Brad Weir', role: 'ae' },
+        { name: 'Jarvis Pace', role: 'pdr' },
+        { name: 'Anna Siegel', role: 'pdr' },
+        { name: 'Katie Ellis', role: 'csm' },
+        { name: 'Blasia Dunham', role: 'es' },
+        { name: 'Cheska Robinson', role: 'es' },
+      ]
+    },
+  ]
+};
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+
+let state = {
+  pods: [],
+  activeRegion: 'all',
+  activeRole: 'all',
+  searchQuery: '',
+};
+
+let editingMemberRole = '';
+
+function loadData() {
+  try {
+    const saved = localStorage.getItem('schoolai-pods');
+    if (saved) {
+      state.pods = JSON.parse(saved).pods;
+    } else {
+      state.pods = JSON.parse(JSON.stringify(DEFAULT_DATA.pods));
+    }
+  } catch(e) {
+    state.pods = JSON.parse(JSON.stringify(DEFAULT_DATA.pods));
+  }
+}
+
+function saveData() {
+  localStorage.setItem('schoolai-pods', JSON.stringify({ pods: state.pods }));
+  const now = new Date();
+  document.getElementById('last-saved').textContent =
+    'Saved ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function genId() {
+  return Math.random().toString(36).substr(2, 9);
+}
+
+// ═══════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════
+
+function render() {
+  updateStats();
+  updateCounts();
+  renderRegions();
+}
+
+function updateStats() {
+  const pods = state.pods;
+  let ae=0, pdr=0, csm=0, es=0, total=0;
+  const seen = new Set();
+  pods.forEach(p => {
+    p.members.forEach(m => {
+      if (!m.unconfirmed) {
+        const key = m.name + m.role;
+        if (!seen.has(key)) { seen.add(key); total++; }
+        if (m.role==='ae') ae++;
+        if (m.role==='pdr') pdr++;
+        if (m.role==='csm') csm++;
+        if (m.role==='es') es++;
+      }
+    });
+  });
+  document.getElementById('stat-pods').textContent = pods.length;
+  document.getElementById('stat-members').textContent = total;
+  document.getElementById('stat-ae').textContent = ae;
+  document.getElementById('stat-pdr').textContent = pdr;
+  document.getElementById('stat-csm').textContent = csm;
+  document.getElementById('stat-es').textContent = es;
+}
+
+function updateCounts() {
+  const regions = ['West','South','Midwest','East'];
+  const all = state.pods.length;
+  document.getElementById('count-all').textContent = all;
+  regions.forEach(r => {
+    const el = document.getElementById('count-' + r);
+    if (el) el.textContent = state.pods.filter(p => p.region === r).length;
+  });
+}
+
+function renderRegions() {
+  const container = document.getElementById('regions-container');
+  const regions = ['West','South','Midwest','East'];
+  const regionLabels = { West: 'West', South: 'South & Central', Midwest: 'Midwest', East: 'East' };
+
+  let html = '';
+
+  const filteredRegions = state.activeRegion === 'all' ? regions : [state.activeRegion];
+
+  filteredRegions.forEach(region => {
+    const pods = state.pods.filter(p => {
+      if (p.region !== region) return false;
+      if (state.activeRole !== 'all') {
+        return p.members.some(m => m.role === state.activeRole);
+      }
+      return true;
+    });
+    if (!pods.length) return;
+
+    html += `
+      <div class="region-section" data-region="${region}">
+        <div class="region-header">
+          <div class="region-title" style="color:${REGION_COLORS[region]}">${regionLabels[region]}</div>
+          <div class="region-line"></div>
+          <button class="btn btn-ghost" style="padding:3px 10px;font-size:9px" onclick="openAddPodModal('${region}')">+ Pod</button>
+        </div>
+        <div class="pods-grid">
+          ${pods.map(pod => renderPodCard(pod)).join('')}
+        </div>
+      </div>`;
+  });
+
+  container.innerHTML = html || `<div class="empty-state"><div class="empty-state-icon">◎</div><div class="empty-state-text">No pods match current filters</div></div>`;
+}
+
+function renderPodCard(pod) {
+  const color = REGION_COLORS[pod.region] || '#6366f1';
+  const roleOrder = ['ae','pdr','csm','es'];
+  const members = [...pod.members].sort((a,b) => roleOrder.indexOf(a.role) - roleOrder.indexOf(b.role));
+
+  // Filter by active role
+  const visibleMembers = state.activeRole === 'all'
+    ? members
+    : members.filter(m => m.role === state.activeRole);
+
+  const alertHtml = pod.alert ? `
+    <div style="padding:5px 14px 0">
+      <span class="warn-badge">${pod.alert}</span>
+    </div>` : '';
+
+  const mgrHtml = (pod.mgr || pod.svp) ? `
+    <div class="mgr-strip">
+      ${pod.mgr ? `<span class="mgr-chip">Mgr</span><span class="mgr-name">${pod.mgr}</span><span class="mgr-sep">·</span>` : ''}
+      ${pod.svp ? `<span class="mgr-chip">SVP</span><span class="mgr-name">${pod.svp}</span>` : ''}
+    </div>` : '';
+
+  const membersHtml = visibleMembers.map((m, idx) => {
+    const realIdx = pod.members.indexOf(m);
+    const noteHtml = m.note ? `<span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text3);margin-left:4px">${m.note}</span>` : '';
+    return `
+      <div class="member-row">
+        <span class="role-tag tag-${m.role}">${m.role.toUpperCase()}</span>
+        <span class="member-name${m.unconfirmed ? ' unconfirmed' : ''}">${m.name}${noteHtml}</span>
+        <div class="member-actions">
+          <button class="member-edit-btn" onclick="openEditMember('${pod.id}', ${realIdx})" title="Edit">✎</button>
+          <button class="member-edit-btn del" onclick="deleteMember('${pod.id}', ${realIdx})" title="Remove">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="pod-card" id="pod-${pod.id}">
+      <div class="pod-card-header">
+        <div class="pod-color-bar" style="background:${color}"></div>
+        <div class="pod-title-block">
+          <div class="pod-name">${pod.name}</div>
+          <div class="pod-states">${pod.states}</div>
+        </div>
+        <div class="pod-card-actions">
+          <button class="icon-btn" onclick="openEditPodModal('${pod.id}')" title="Edit pod">✎</button>
+        </div>
+      </div>
+      ${alertHtml}
+      ${mgrHtml}
+      <div class="members-list">
+        ${membersHtml}
+        <div class="add-member-row">
+          <button class="add-member-btn" onclick="openAddMember('${pod.id}')">
+            + Add member
+          </button>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════════
+
+function doSearch(q) {
+  const resultsEl = document.getElementById('search-results');
+  const gridEl = document.getElementById('search-results-grid');
+  const headerEl = document.getElementById('search-results-header');
+  const filterBar = document.getElementById('filter-bar');
+  const regionsContainer = document.getElementById('regions-container');
+
+  if (!q.trim()) {
+    resultsEl.classList.remove('visible');
+    filterBar.style.display = '';
+    regionsContainer.style.display = '';
+    document.getElementById('search-clear').classList.remove('visible');
+    renderRegions();
+    return;
+  }
+
+  document.getElementById('search-clear').classList.add('visible');
+  const lower = q.toLowerCase();
+
+  // Search across all pods and members
+  const results = [];
+  state.pods.forEach(pod => {
+    pod.members.forEach(m => {
+      if (m.name.toLowerCase().includes(lower) ||
+          pod.name.toLowerCase().includes(lower) ||
+          m.role.toLowerCase().includes(lower) ||
+          pod.states.toLowerCase().includes(lower)) {
+        results.push({ member: m, pod });
+      }
+    });
+    // Also match pod name alone
+    if (pod.name.toLowerCase().includes(lower) && !pod.members.some(m => m.name.toLowerCase().includes(lower))) {
+      results.push({ member: null, pod });
+    }
+  });
+
+  // Deduplicate
+  const seen = new Set();
+  const deduped = results.filter(r => {
+    const key = r.pod.id + (r.member ? r.member.name : '__pod');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  headerEl.textContent = `${deduped.length} result${deduped.length !== 1 ? 's' : ''} for "${q}"`;
+
+  gridEl.innerHTML = deduped.map(r => {
+    const color = REGION_COLORS[r.pod.region] || '#6366f1';
+    if (!r.member) {
+      return `
+        <div class="search-result-card" onclick="scrollToPod('${r.pod.id}')">
+          <div class="src-name">${r.pod.name}</div>
+          <div class="src-meta">
+            <span class="src-pod" style="color:${color}">${r.pod.region}</span>
+            <span class="src-pod">· ${r.pod.states}</span>
+          </div>
+        </div>`;
+    }
+    return `
+      <div class="search-result-card" onclick="scrollToPod('${r.pod.id}')">
+        <div class="src-name">${r.member.name}</div>
+        <div class="src-meta">
+          <span class="role-tag tag-${r.member.role}" style="display:inline-block">${r.member.role.toUpperCase()}</span>
+          <span class="src-pod" style="color:${color}">${r.pod.name}</span>
+          <span class="src-pod">· ${r.pod.states}</span>
+        </div>
+      </div>`;
+  }).join('') || '<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--text3);padding:8px 0">No matches found.</div>';
+
+  resultsEl.classList.add('visible');
+  filterBar.style.display = 'none';
+  regionsContainer.style.display = '';
+  renderRegions();
+}
+
+function scrollToPod(podId) {
+  // Clear search and highlight
+  document.getElementById('search-input').value = '';
+  doSearch('');
+  setTimeout(() => {
+    const el = document.getElementById('pod-' + podId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('highlight');
+      setTimeout(() => el.classList.remove('highlight'), 2000);
+    }
+  }, 100);
+}
+
+// ═══════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════
+
+function filterRegion(region, btn) {
+  state.activeRegion = region;
+  document.querySelectorAll('.region-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRegions();
+}
+
+function filterRole(role, btn) {
+  state.activeRole = role;
+  document.querySelectorAll('.filter-chip').forEach(b => {
+    b.className = 'filter-chip';
+  });
+  btn.classList.add('active-' + (role === 'all' ? 'all' : role));
+  renderRegions();
+}
+
+// ═══════════════════════════════════════
+// MEMBER MODAL
+// ═══════════════════════════════════════
+
+function openAddMember(podId) {
+  editingMemberRole = '';
+  document.getElementById('member-modal-title').textContent = 'Add Member';
+  document.getElementById('editing-pod-id').value = podId;
+  document.getElementById('editing-member-idx').value = '-1';
+  document.getElementById('member-name-input').value = '';
+  document.getElementById('member-note-input').value = '';
+  document.querySelectorAll('.role-option').forEach(o => o.className = 'role-option');
+  openModal('member-modal');
+  setTimeout(() => document.getElementById('member-name-input').focus(), 100);
+}
+
+function openEditMember(podId, idx) {
+  const pod = state.pods.find(p => p.id === podId);
+  const member = pod.members[idx];
+  editingMemberRole = member.role;
+  document.getElementById('member-modal-title').textContent = 'Edit Member';
+  document.getElementById('editing-pod-id').value = podId;
+  document.getElementById('editing-member-idx').value = idx;
+  document.getElementById('member-name-input').value = member.unconfirmed ? '' : member.name;
+  document.getElementById('member-note-input').value = member.note || '';
+  document.querySelectorAll('.role-option').forEach(o => {
+    o.className = 'role-option' + (o.dataset.role === member.role ? ' selected-' + member.role : '');
+  });
+  openModal('member-modal');
+}
+
+function selectRole(el) {
+  const role = el.dataset.role;
+  editingMemberRole = role;
+  document.querySelectorAll('.role-option').forEach(o => o.className = 'role-option');
+  el.classList.add('selected-' + role);
+}
+
+function saveMember() {
+  const podId = document.getElementById('editing-pod-id').value;
+  const idx = parseInt(document.getElementById('editing-member-idx').value);
+  const name = document.getElementById('member-name-input').value.trim();
+  const note = document.getElementById('member-note-input').value.trim();
+
+  if (!name) { showToast('Please enter a name', 'error'); return; }
+  if (!editingMemberRole) { showToast('Please select a role', 'error'); return; }
+
+  const pod = state.pods.find(p => p.id === podId);
+  const member = { name, role: editingMemberRole };
+  if (note) member.note = note;
+
+  if (idx === -1) {
+    pod.members.push(member);
+  } else {
+    pod.members[idx] = member;
+  }
+
+  saveData();
+  closeModal('member-modal');
+  render();
+  showToast('Member saved ✓', 'success');
+}
+
+function deleteMember(podId, idx) {
+  const pod = state.pods.find(p => p.id === podId);
+  const name = pod.members[idx].name;
+  pod.members.splice(idx, 1);
+  saveData();
+  render();
+  showToast(`Removed ${name}`, 'success');
+}
+
+// ═══════════════════════════════════════
+// POD MODAL
+// ═══════════════════════════════════════
+
+function openAddPodModal(region) {
+  document.getElementById('pod-modal-title').textContent = 'Add Pod';
+  document.getElementById('editing-pod-id-2').value = '';
+  document.getElementById('pod-name-input').value = '';
+  document.getElementById('pod-states-input').value = '';
+  document.getElementById('pod-region-input').value = region || 'West';
+  document.getElementById('pod-mgr-input').value = '';
+  document.getElementById('pod-svp-input').value = 'Ike Ramos';
+  document.getElementById('pod-alert-input').value = '';
+  document.getElementById('pod-delete-btn').style.display = 'none';
+  openModal('pod-modal');
+}
+
+function openEditPodModal(podId) {
+  const pod = state.pods.find(p => p.id === podId);
+  document.getElementById('pod-modal-title').textContent = 'Edit Pod';
+  document.getElementById('editing-pod-id-2').value = podId;
+  document.getElementById('pod-name-input').value = pod.name;
+  document.getElementById('pod-states-input').value = pod.states;
+  document.getElementById('pod-region-input').value = pod.region;
+  document.getElementById('pod-mgr-input').value = pod.mgr || '';
+  document.getElementById('pod-svp-input').value = pod.svp || '';
+  document.getElementById('pod-alert-input').value = pod.alert || '';
+  document.getElementById('pod-delete-btn').style.display = '';
+  openModal('pod-modal');
+}
+
+function savePod() {
+  const podId = document.getElementById('editing-pod-id-2').value;
+  const name = document.getElementById('pod-name-input').value.trim();
+  if (!name) { showToast('Pod name required', 'error'); return; }
+
+  const data = {
+    name,
+    states: document.getElementById('pod-states-input').value.trim(),
+    region: document.getElementById('pod-region-input').value,
+    mgr: document.getElementById('pod-mgr-input').value.trim(),
+    svp: document.getElementById('pod-svp-input').value.trim(),
+    alert: document.getElementById('pod-alert-input').value.trim(),
+  };
+
+  if (podId) {
+    const pod = state.pods.find(p => p.id === podId);
+    Object.assign(pod, data);
+  } else {
+    state.pods.push({ ...data, id: genId(), members: [] });
+  }
+
+  saveData();
+  closeModal('pod-modal');
+  render();
+  showToast(podId ? 'Pod updated ✓' : 'Pod added ✓', 'success');
+}
+
+function deletePod() {
+  const podId = document.getElementById('editing-pod-id-2').value;
+  const pod = state.pods.find(p => p.id === podId);
+  if (!confirm(`Delete "${pod.name}" and all its members?`)) return;
+  state.pods = state.pods.filter(p => p.id !== podId);
+  saveData();
+  closeModal('pod-modal');
+  render();
+  showToast('Pod deleted', 'success');
+}
+
+// ═══════════════════════════════════════
+// IMPORT / EXPORT
+// ═══════════════════════════════════════
+
+function exportData() {
+  const json = JSON.stringify({ pods: state.pods }, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'schoolai-pods-' + new Date().toISOString().split('T')[0] + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Exported ✓', 'success');
+}
+
+function openImportModal() {
+  document.getElementById('import-json').value = '';
+  openModal('import-modal');
+}
+
+function importData() {
+  try {
+    const raw = document.getElementById('import-json').value.trim();
+    const parsed = JSON.parse(raw);
+    if (!parsed.pods || !Array.isArray(parsed.pods)) throw new Error('Invalid format');
+    state.pods = parsed.pods;
+    saveData();
+    closeModal('import-modal');
+    render();
+    showToast('Imported ✓', 'success');
+  } catch(e) {
+    showToast('Invalid JSON — check format', 'error');
+  }
+}
+
+// ═══════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════
+
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+
+let toastTimer;
+function showToast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════
+// SEARCH WIRING
+// ═══════════════════════════════════════
+
+const searchInput = document.getElementById('search-input');
+searchInput.addEventListener('input', e => {
+  state.searchQuery = e.target.value;
+  doSearch(e.target.value);
+});
+
+document.getElementById('search-clear').addEventListener('click', () => {
+  searchInput.value = '';
+  state.searchQuery = '';
+  doSearch('');
+});
+
+// Keyboard shortcut: / to focus search
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+  }
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    if (state.searchQuery) {
+      searchInput.value = '';
+      doSearch('');
+    }
+  }
+});
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+
+loadData();
+render();
+</script>
+</body>
+</html>
